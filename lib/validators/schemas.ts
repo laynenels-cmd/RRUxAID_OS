@@ -149,6 +149,12 @@ export const reportStatusSchema = z.object({
   status: z.enum(["draft", "approved", "sent"]),
 });
 
+export const partnerAccessSchema = z.object({
+  partner_id: z.string().uuid(),
+  athlete_id: z.string().uuid(),
+  can_view: z.boolean().default(true),
+});
+
 export const agentRequestSchema = z.object({
   message: z.string().min(2).max(4000),
   athlete_id: z.string().uuid().optional().nullable(),

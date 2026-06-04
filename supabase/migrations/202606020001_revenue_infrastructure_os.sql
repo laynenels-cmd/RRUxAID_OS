@@ -2,56 +2,6 @@ create extension if not exists pgcrypto;
 
 create schema if not exists private;
 
-create or replace function private.current_app_role()
-returns text
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select role from public.profiles where id = auth.uid()
-$$;
-
-create or replace function private.is_admin()
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select coalesce(private.current_app_role() = 'admin', false)
-$$;
-
-create or replace function private.can_write_ops()
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select coalesce(private.current_app_role() in ('admin', 'operator'), false)
-$$;
-
-create or replace function private.can_read_ops()
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select coalesce(private.current_app_role() in ('admin', 'operator', 'viewer'), false)
-$$;
-
-create or replace function private.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = timezone('utc', now());
-  return new;
-end;
-$$;
-
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
@@ -241,6 +191,56 @@ create table if not exists public.files (
   uploaded_by uuid references public.profiles(id) on delete set null,
   created_at timestamp with time zone not null default timezone('utc', now())
 );
+
+create or replace function private.current_app_role()
+returns text
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select role from public.profiles where id = auth.uid()
+$$;
+
+create or replace function private.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(private.current_app_role() = 'admin', false)
+$$;
+
+create or replace function private.can_write_ops()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(private.current_app_role() in ('admin', 'operator'), false)
+$$;
+
+create or replace function private.can_read_ops()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(private.current_app_role() in ('admin', 'operator', 'viewer'), false)
+$$;
+
+create or replace function private.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = timezone('utc', now());
+  return new;
+end;
+$$;
 
 create index if not exists athletes_code_idx on public.athletes(code);
 create index if not exists diagnostics_athlete_idx on public.diagnostics(athlete_id);

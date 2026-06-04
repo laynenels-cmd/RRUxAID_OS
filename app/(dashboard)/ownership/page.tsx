@@ -1,4 +1,5 @@
 import { listAthletes, listBuildouts, listOffers, listPipelineDeals } from "@/lib/db/operations";
+import { requireInternalProfile } from "@/lib/auth/route-guards";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { currency } from "@/lib/utils/format";
@@ -13,6 +14,7 @@ const path = [
 ];
 
 export default async function OwnershipPage() {
+  await requireInternalProfile();
   const [athletes, offers, buildouts, deals] = await Promise.all([
     listAthletes(),
     listOffers(),

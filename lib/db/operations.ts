@@ -14,6 +14,7 @@ import type {
   Diagnostic,
   DiagnosticScore,
   Offer,
+  PartnerAthleteAccess,
   PipelineDeal,
   Profile,
   Report,
@@ -34,10 +35,12 @@ import type {
   pipelineDealSchema,
   reportGenerateSchema,
   reportStatusSchema,
+  partnerAccessSchema,
 } from "@/lib/validators/schemas";
 
 const tables = [
   "profiles",
+  "partner_athlete_access",
   "athletes",
   "athlete_leaks",
   "athlete_opportunities",
@@ -67,6 +70,7 @@ type PipelineDealInput = z.infer<typeof pipelineDealSchema>;
 type ReportGenerateInput = z.infer<typeof reportGenerateSchema>;
 type ReportStatusInput = z.infer<typeof reportStatusSchema>;
 type ImportInput = z.infer<typeof importSchema>;
+type PartnerAccessInput = z.infer<typeof partnerAccessSchema>;
 
 function assertData<T>(data: T | null, error: { message?: string } | null | undefined, fallback: string): T {
   if (error) throw new Error(error.message || fallback);
@@ -859,6 +863,42 @@ export async function importData(input: ImportInput, profile: Profile) {
   await logActivity(profile, "data", null, "data.imported", {
     athletes: input.athletes?.length || 0,
     pipeline_deals: input.pipeline_deals?.length || 0,
+  });
+}
+
+export async function setPartnerAthleteAccess(input: PartnerAccessInput, profile: Profile) {
+  const payload: PartnerAthleteAccess = {
+    partner_id: input.partner_id,
+    athlete_id: input.athlete_id,
+    can_view: input.can_view,
+    created_at: nowIso(),
+  };
+
+  if (!isSupabaseConfigured()) {
+    await mutateDemoStore((store) => {
+      const index = store.partner_athlete_access.findIndex(
+        (access) => access.partner_id === input.partner_id && access.athlete_id === input.athlete_id,
+      );
+      if (index === -1) {
+        store.partner_athlete_access.push(payload);
+      } else {
+        store.partner_athlete_access[index] = {
+          ...store.partner_athlete_access[index],
+          can_view: input.can_view,
+        };
+      }
+    });
+  } else {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("partner_athlete_access")
+      .upsert(payload, { onConflict: "partner_id,athlete_id" });
+    if (error) throw new Error(error.message);
+  }
+
+  await logActivity(profile, "partner_access", input.athlete_id, "partner_access.updated", {
+    partner_id: input.partner_id,
+    can_view: input.can_view,
   });
 }
 

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, Activity, Gauge, GitBranch, UserRoundCheck } from "lucide-react";
+import { requireInternalProfile } from "@/lib/auth/route-guards";
 import { getDashboardMetrics, listAthletes, listPipelineDeals } from "@/lib/db/operations";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { currency } from "@/lib/utils/format";
 
 export default async function DashboardPage() {
+  await requireInternalProfile();
   const [metrics, athletes, deals] = await Promise.all([
     getDashboardMetrics(),
     listAthletes(),

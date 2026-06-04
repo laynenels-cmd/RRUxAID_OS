@@ -1,7 +1,11 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { resolve } from "node:path";
+
+config({ path: resolve(process.cwd(), ".env.local") });
+config();
 import { createClient } from "@supabase/supabase-js";
 import { createSeedStore } from "@/lib/demo/seed-data";
-import { DEMO_ADMIN_ID } from "@/lib/auth/current-user";
+import { DEMO_ADMIN_ID } from "@/lib/auth/demo-constants";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

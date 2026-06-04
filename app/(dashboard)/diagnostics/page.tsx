@@ -1,11 +1,11 @@
-import { requireProfile } from "@/lib/auth/current-user";
+import { requireInternalProfile } from "@/lib/auth/route-guards";
 import { canWrite } from "@/lib/auth/permissions";
 import { listAthletes, listDiagnostics } from "@/lib/db/operations";
 import { DiagnosticWorkspace } from "@/components/diagnostics/diagnostic-workspace";
 
 export default async function DiagnosticsPage() {
   const [profile, athletes, diagnostics] = await Promise.all([
-    requireProfile(),
+    requireInternalProfile(),
     listAthletes(),
     listDiagnostics(),
   ]);

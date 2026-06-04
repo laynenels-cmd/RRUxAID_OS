@@ -20,9 +20,11 @@ import {
   ShieldCheck,
   Users,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { clsx } from "clsx";
 import type { Profile } from "@/types/domain";
+import { canAccessScope, type AccessScope } from "@/lib/auth/permissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -34,17 +36,17 @@ type Connections = {
   storage_configured: boolean;
 };
 
-const navItems = [
-  { href: "/dashboard", label: "Command Center", icon: LayoutDashboard },
-  { href: "/athletes", label: "Athlete Intelligence", icon: Users },
-  { href: "/diagnostics", label: "Revenue Diagnostic", icon: Gauge },
-  { href: "/offers", label: "Offer Architect", icon: BriefcaseBusiness },
-  { href: "/ownership", label: "Ownership Map", icon: Network },
-  { href: "/buildouts", label: "Buildout Tracker", icon: ClipboardList },
-  { href: "/pipeline", label: "Pipeline", icon: GitBranch },
-  { href: "/reports", label: "Reports", icon: FileText },
-  { href: "/agent", label: "OS Agent", icon: Bot },
-  { href: "/settings", label: "Settings / Data Room", icon: Settings },
+const navItems: Array<{ href: string; label: string; icon: LucideIcon; scope: AccessScope }> = [
+  { href: "/dashboard", label: "Command Center", icon: LayoutDashboard, scope: "internal" },
+  { href: "/athletes", label: "Athlete Intelligence", icon: Users, scope: "partner-read" },
+  { href: "/diagnostics", label: "Revenue Diagnostic", icon: Gauge, scope: "internal" },
+  { href: "/offers", label: "Offer Architect", icon: BriefcaseBusiness, scope: "internal" },
+  { href: "/ownership", label: "Ownership Map", icon: Network, scope: "internal" },
+  { href: "/buildouts", label: "Buildout Tracker", icon: ClipboardList, scope: "internal" },
+  { href: "/pipeline", label: "Pipeline", icon: GitBranch, scope: "internal" },
+  { href: "/reports", label: "Reports", icon: FileText, scope: "partner-read" },
+  { href: "/agent", label: "OS Agent", icon: Bot, scope: "internal" },
+  { href: "/settings", label: "Settings / Data Room", icon: Settings, scope: "partner-read" },
 ];
 
 export function DashboardShell({
@@ -75,12 +77,17 @@ export function DashboardShell({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const visibleNav = useMemo(
+    () => navItems.filter((item) => canAccessScope(profile.role, item.scope)),
+    [profile.role],
+  );
+
   const filteredNav = useMemo(() => {
     const term = query.toLowerCase();
-    return navItems.filter((item) => item.label.toLowerCase().includes(term));
-  }, [query]);
+    return visibleNav.filter((item) => item.label.toLowerCase().includes(term));
+  }, [query, visibleNav]);
 
-  const current = navItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  const current = visibleNav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   function goTo(href: string) {
     setPaletteOpen(false);
@@ -115,7 +122,7 @@ export function DashboardShell({
           </div>
         </div>
         <nav className="grid gap-1 p-2">
-          {navItems.map((item) => {
+          {visibleNav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
             return (

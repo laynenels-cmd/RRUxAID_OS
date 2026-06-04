@@ -73,7 +73,9 @@ The seed includes Nico Ramirez, Marcus King, Devon Price, Isaiah Brooks, Jalen T
 npm run dev
 npm run typecheck
 npm run lint
+npm run audit:known
 npm run build
+npm run test
 npm run start
 ```
 
@@ -113,7 +115,10 @@ Live mode is active when Supabase URL and anon key are configured. Data is store
 - [x] `npm run dev`
 - [x] `npm run typecheck`
 - [x] `npm run lint`
+- [x] `npm run audit:known`
 - [x] `npm run build`
+- [x] `npm run test:roles`
+- [x] `npm run test:smoke`
 - [x] Login/logout
 - [x] Protected route redirect
 - [x] Dashboard loads database/demo-derived values
@@ -125,19 +130,20 @@ Live mode is active when Supabase URL and anon key are configured. Data is store
 - [x] Report generation/approval/PDF export
 - [x] Agent API response and no-key fallback
 - [x] Settings export/import/reset
-- [x] Role restrictions: anonymous/demo API checks, explicit partner-read API boundaries, plus Supabase RLS policies in migration
+- [x] Role restrictions: anonymous/demo API checks, role-gated UI navigation/pages, explicit partner-read API boundaries, admin partner access grants, plus Supabase RLS policies in migration
 - [x] Service role key is not exposed to client code
 - [x] No visible primary action is knowingly dead
 - [x] Responsive smoke at 1440px, 1024px, and mobile fallback
+- [x] CI workflow for typecheck, lint, audit gate, build, role smoke, and production launch smoke
 
 ## Known Limitations
 
 - The PDF exporter intentionally uses a simple server-side PDF renderer for stable internal exports. It is functional, but not a full design-grade typesetting engine.
-- Partner access is enforced by RLS through `partner_athlete_access`; partner invitation and approval management UI is not yet expanded beyond the admin/team data model.
+- Partner access is enforced by RLS through `partner_athlete_access`, and admins can grant athlete visibility from Settings. Partner user creation still happens in Supabase Auth/profile setup.
 - Demo reset is local-only unless Supabase service role configuration is available.
 - The OS Agent can recommend actions from saved context, but it does not autonomously mutate records.
 - Storage upload depends on a configured Supabase project and service role key; downloads still work without storage.
-- `npm install` currently reports two moderate dependency advisories. They are not blocking the verified build, and `npm audit fix --force` would introduce breaking upgrades.
+- `npm audit` currently reports the tracked moderate Next/PostCSS advisory `GHSA-qx2v-qp2m-jg93`. `npm run audit:known` allows only that advisory and fails on new issues.
 
 ## Deploying To Vercel
 
@@ -146,7 +152,8 @@ Live mode is active when Supabase URL and anon key are configured. Data is store
 3. Add the environment variables listed above.
 4. Run the Supabase migration before first production login.
 5. Seed an admin user or create a profile row for an existing Supabase Auth user.
-6. Deploy.
+6. Run the live QA matrix in `docs/launch-runbook.md`.
+7. Deploy.
 
 Recommended production values:
 
@@ -158,7 +165,6 @@ NEXT_PUBLIC_APP_URL=https://your-vercel-domain.example
 
 ## Future Roadmap
 
-- Admin UI for partner access grants.
 - Richer report templates and branded PDF layouts.
 - Optional webhook integrations once concrete downstream systems are selected.
 - More granular activity filters and operator workload views.

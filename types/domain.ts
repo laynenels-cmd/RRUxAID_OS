@@ -9,6 +9,13 @@ export type Profile = {
   updated_at: string;
 };
 
+export type PartnerAthleteAccess = {
+  partner_id: string;
+  athlete_id: string;
+  can_view: boolean;
+  created_at: string;
+};
+
 export type Athlete = {
   id: string;
   code: string;
@@ -212,6 +219,7 @@ export type AthleteDossier = {
 
 export type AppStore = {
   profiles: Profile[];
+  partner_athlete_access: PartnerAthleteAccess[];
   athletes: Athlete[];
   athlete_leaks: AthleteLeak[];
   athlete_opportunities: AthleteOpportunity[];

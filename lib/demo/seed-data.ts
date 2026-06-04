@@ -1,4 +1,4 @@
-import { DEMO_ADMIN_ID, demoProfile } from "@/lib/auth/current-user";
+import { DEMO_ADMIN_ID, demoProfile } from "@/lib/auth/demo-constants";
 import type { AppStore, Athlete, AthleteLeak, AthleteOpportunity, Buildout, BuildoutTask, Diagnostic, DiagnosticScore, Offer, PipelineDeal, Report } from "@/types/domain";
 
 const t0 = "2026-05-27T16:00:00.000Z";
@@ -421,6 +421,7 @@ export function createSeedStore(): AppStore {
 
   return {
     profiles: [demoProfile],
+    partner_athlete_access: [],
     athletes,
     athlete_leaks: athleteLeaks,
     athlete_opportunities: athleteOpportunities,

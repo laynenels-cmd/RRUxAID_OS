@@ -14,7 +14,11 @@ async function writeStore(store: AppStore) {
 export async function readDemoStore(): Promise<AppStore> {
   try {
     const raw = await readFile(storePath, "utf8");
-    return JSON.parse(raw) as AppStore;
+    const store = JSON.parse(raw) as AppStore;
+    return {
+      ...store,
+      partner_athlete_access: store.partner_athlete_access || [],
+    };
   } catch {
     const seeded = createSeedStore();
     await writeStore(seeded);

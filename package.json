@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
+    "audit:known": "tsx scripts/audit-known.ts",
+    "test:roles": "tsx scripts/role-policy-smoke.ts",
+    "test:smoke": "tsx scripts/launch-smoke.ts",
+    "test": "npm run test:roles && npm run test:smoke",
     "seed": "tsx scripts/seed-supabase.ts"
   },
   "dependencies": {

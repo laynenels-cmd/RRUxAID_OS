@@ -10,12 +10,20 @@ export default function UnauthorizedPage() {
           Your account is signed in, but the profile role does not allow this operation. Ask an admin to update your
           profile role in Supabase.
         </p>
-        <Link
-          href="/dashboard"
-          className="focus-ring mt-5 inline-flex h-10 items-center justify-center border border-line bg-bg-2 px-4 font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim hover:border-line-hi hover:text-text"
-        >
-          Return to Dashboard
-        </Link>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link
+            href="/reports"
+            className="focus-ring inline-flex h-10 items-center justify-center border border-line bg-bg-2 px-4 font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim hover:border-line-hi hover:text-text"
+          >
+            Open Reports
+          </Link>
+          <Link
+            href="/dashboard"
+            className="focus-ring inline-flex h-10 items-center justify-center border border-line bg-bg-2 px-4 font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim hover:border-line-hi hover:text-text"
+          >
+            Return to Dashboard
+          </Link>
+        </div>
       </div>
     </main>
   );
