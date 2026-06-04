@@ -1,4 +1,5 @@
 import "server-only";
+import { isDemoSessionActive } from "@/lib/auth/demo-session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/utils/env";
 import { makeId, nowIso } from "@/lib/utils/ids";
@@ -57,6 +58,10 @@ const tables = [
   "files",
 ] as const;
 
+export async function isDemoDataMode() {
+  return !isSupabaseConfigured() || (await isDemoSessionActive());
+}
+
 type AthleteInput = z.infer<typeof athleteSchema>;
 type DiagnosticCreateInput = z.infer<typeof diagnosticCreateSchema>;
 type OfferInput = z.infer<typeof offerSchema>;
@@ -95,7 +100,7 @@ async function readSupabaseStore(): Promise<AppStore> {
 }
 
 export async function readAppStore(): Promise<AppStore> {
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     return readDemoStore();
   }
 
@@ -103,7 +108,7 @@ export async function readAppStore(): Promise<AppStore> {
 }
 
 export async function resetSeedData(profile: Profile) {
-  if (isSupabaseConfigured()) {
+  if (!(await isDemoDataMode())) {
     throw new Error("Seed/reset from the app is available only in local Demo Mode.");
   }
 
@@ -129,7 +134,7 @@ export async function logActivity(
     created_at: nowIso(),
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       store.activity_log.unshift(payload);
     });
@@ -238,7 +243,7 @@ export async function createAthleteRecord(input: AthleteInput, profile: Profile)
     updated_at: timestamp,
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       store.athletes.unshift(athlete);
     });
@@ -255,7 +260,7 @@ export async function createAthleteRecord(input: AthleteInput, profile: Profile)
 export async function updateAthleteRecord(id: string, input: Partial<AthleteInput>, profile: Profile) {
   const patch = { ...input, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     const athlete = await mutateDemoStore((store) => {
       const index = store.athletes.findIndex((athlete) => athlete.id === id);
       if (index === -1) throw new Error("Athlete not found.");
@@ -356,7 +361,7 @@ export async function createDiagnosticRun(input: DiagnosticCreateInput, profile:
     ...score,
   }));
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((mutable) => {
       mutable.diagnostics.unshift(diagnostic);
       mutable.diagnostic_scores.push(...scoreRows);
@@ -387,7 +392,7 @@ export async function createDiagnosticRun(input: DiagnosticCreateInput, profile:
 export async function approveDiagnostic(id: string, profile: Profile) {
   const patch = { status: "approved" as const, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const diagnostic = store.diagnostics.find((item) => item.id === id);
       if (!diagnostic) throw new Error("Diagnostic not found.");
@@ -427,7 +432,7 @@ export async function createOfferRecord(input: OfferInput, profile: Profile) {
     updated_at: timestamp,
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       store.offers.unshift(offer);
     });
@@ -444,7 +449,7 @@ export async function createOfferRecord(input: OfferInput, profile: Profile) {
 export async function updateOfferRecord(id: string, input: Partial<OfferInput>, profile: Profile) {
   const patch = { ...input, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const offer = store.offers.find((item) => item.id === id);
       if (!offer) throw new Error("Offer not found.");
@@ -490,7 +495,7 @@ export async function createTasksFromOffer(id: string, profile: Profile) {
     updated_at: timestamp,
   }));
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((mutable) => {
       mutable.buildout_tasks.push(...tasks);
     });
@@ -524,7 +529,7 @@ export async function createBuildoutRecord(input: BuildoutInput, profile: Profil
     updated_at: timestamp,
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       store.buildouts.unshift(buildout);
     });
@@ -551,7 +556,7 @@ export async function advanceBuildout(id: string, input: BuildoutAdvanceInput, p
     updated_at: nowIso(),
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((mutable) => {
       const item = mutable.buildouts.find((buildout) => buildout.id === id);
       if (!item) throw new Error("Buildout not found.");
@@ -573,7 +578,7 @@ export async function setBuildoutStatus(id: string, input: BuildoutStatusInput, 
     updated_at: nowIso(),
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const buildout = store.buildouts.find((item) => item.id === id);
       if (!buildout) throw new Error("Buildout not found.");
@@ -602,7 +607,7 @@ export async function createBuildoutTask(input: BuildoutTaskInput, profile: Prof
     updated_at: timestamp,
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       store.buildout_tasks.push(task);
     });
@@ -619,7 +624,7 @@ export async function createBuildoutTask(input: BuildoutTaskInput, profile: Prof
 export async function updateBuildoutTaskStatus(id: string, input: BuildoutTaskStatusInput, profile: Profile) {
   const patch = { status: input.status, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const task = store.buildout_tasks.find((item) => item.id === id);
       if (!task) throw new Error("Task not found.");
@@ -658,7 +663,7 @@ export async function createPipelineDeal(input: PipelineDealInput, profile: Prof
     updated_at: timestamp,
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       store.pipeline_deals.unshift(deal);
     });
@@ -675,7 +680,7 @@ export async function createPipelineDeal(input: PipelineDealInput, profile: Prof
 export async function updatePipelineDeal(id: string, input: Partial<PipelineDealInput>, profile: Profile) {
   const patch = { ...input, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const deal = store.pipeline_deals.find((item) => item.id === id);
       if (!deal) throw new Error("Pipeline deal not found.");
@@ -723,7 +728,7 @@ export async function generateReport(input: ReportGenerateInput, profile: Profil
     updated_at: timestamp,
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((mutable) => {
       mutable.reports.unshift(report);
     });
@@ -740,7 +745,7 @@ export async function generateReport(input: ReportGenerateInput, profile: Profil
 export async function setReportStatus(id: string, input: ReportStatusInput, profile: Profile) {
   const patch = { status: input.status, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const report = store.reports.find((item) => item.id === id);
       if (!report) throw new Error("Report not found.");
@@ -760,7 +765,7 @@ export async function setReportStatus(id: string, input: ReportStatusInput, prof
 export async function saveReportPdfUrl(id: string, pdfUrl: string) {
   const patch = { pdf_url: pdfUrl, updated_at: nowIso() };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const report = store.reports.find((item) => item.id === id);
       if (report) Object.assign(report, patch);
@@ -874,7 +879,7 @@ export async function setPartnerAthleteAccess(input: PartnerAccessInput, profile
     created_at: nowIso(),
   };
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       const index = store.partner_athlete_access.findIndex(
         (access) => access.partner_id === input.partner_id && access.athlete_id === input.athlete_id,
@@ -943,7 +948,7 @@ export async function saveAgentExchange({
     },
   ];
 
-  if (!isSupabaseConfigured()) {
+  if (await isDemoDataMode()) {
     await mutateDemoStore((store) => {
       if (!store.agent_threads.some((item) => item.id === actualThreadId)) {
         store.agent_threads.unshift(thread);

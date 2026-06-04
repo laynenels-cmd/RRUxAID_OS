@@ -12,6 +12,7 @@ import { emitToast } from "@/components/ui/toast-provider";
 
 type Connections = {
   app_mode: string;
+  active_data_mode: "demo" | "live";
   demo_mode: boolean;
   supabase_connected: boolean;
   llm_key_configured: boolean;
@@ -94,13 +95,14 @@ export function SettingsWorkspace({
             <Row label="Name" value={profile.full_name || "Not set"} />
             <Row label="Email" value={profile.email || "Not set"} />
             <Row label="Role" value={profile.role} />
-            <Row label="Mode" value={connections.supabase_connected ? "Live Data" : "Local Demo Data"} />
+            <Row label="Mode" value={connections.active_data_mode === "live" ? "Live Supabase Data" : "Local Demo Data"} />
           </CardBody>
         </Card>
 
         <Card>
           <CardHeader title="System Connection Status" label="Configured Checks" />
-          <CardBody className="grid gap-3 md:grid-cols-3">
+          <CardBody className="grid gap-3 md:grid-cols-4">
+            <Connection label="Active Data" ok={connections.active_data_mode === "live"} okText="Live Data" failText="Demo Data" />
             <Connection label="Supabase" ok={connections.supabase_connected} okText="Connected" failText="Not configured" />
             <Connection label="LLM Key" ok={connections.llm_key_configured} okText="Configured" failText="Prototype Mode" />
             <Connection label="Storage" ok={connections.storage_configured} okText="Configured" failText="PDF downloads only" />
@@ -143,10 +145,10 @@ export function SettingsWorkspace({
             <CardHeader title="Demo Data" label="Admin Only" />
             <CardBody className="grid gap-3">
               <p className="font-mono text-[11px] leading-6 text-text-low">
-                Reset is available only when the app is running without Supabase and using the local demo store. Live Supabase
-                seed/reset is handled by migrations and the seed script.
+                Reset is available when the active session is using the local demo store. Live Supabase seed/reset is handled
+                by migrations and the seed script.
               </p>
-              <Button disabled={!isAdmin || connections.supabase_connected || working} onClick={resetSeed} icon={<RefreshCw className="h-3.5 w-3.5" />}>
+              <Button disabled={!isAdmin || connections.active_data_mode !== "demo" || working} onClick={resetSeed} icon={<RefreshCw className="h-3.5 w-3.5" />}>
                 {working ? "Working" : "Reset Demo Seed Data"}
               </Button>
             </CardBody>

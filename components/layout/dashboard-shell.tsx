@@ -19,6 +19,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  Workflow,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -30,6 +31,7 @@ import { Button } from "@/components/ui/button";
 
 type Connections = {
   app_mode: string;
+  active_data_mode: "demo" | "live";
   demo_mode: boolean;
   supabase_connected: boolean;
   llm_key_configured: boolean;
@@ -39,10 +41,11 @@ type Connections = {
 const navItems: Array<{ href: string; label: string; icon: LucideIcon; scope: AccessScope }> = [
   { href: "/dashboard", label: "Command Center", icon: LayoutDashboard, scope: "internal" },
   { href: "/athletes", label: "Athlete Intelligence", icon: Users, scope: "partner-read" },
-  { href: "/diagnostics", label: "Revenue Diagnostic", icon: Gauge, scope: "internal" },
+  { href: "/diagnostics", label: "AI Revenue Audit", icon: Gauge, scope: "internal" },
+  { href: "/workflows", label: "Workflow Queue", icon: Workflow, scope: "internal" },
   { href: "/offers", label: "Offer Architect", icon: BriefcaseBusiness, scope: "internal" },
   { href: "/ownership", label: "Ownership Map", icon: Network, scope: "internal" },
-  { href: "/buildouts", label: "Buildout Tracker", icon: ClipboardList, scope: "internal" },
+  { href: "/buildouts", label: "Campaign Tasks", icon: ClipboardList, scope: "internal" },
   { href: "/pipeline", label: "Pipeline", icon: GitBranch, scope: "internal" },
   { href: "/reports", label: "Reports", icon: FileText, scope: "partner-read" },
   { href: "/agent", label: "OS Agent", icon: Bot, scope: "internal" },
@@ -160,8 +163,8 @@ export function DashboardShell({
           Command / Search
           <span className="ml-auto text-text-min">CMD K</span>
         </button>
-        <Badge tone={connections.supabase_connected ? "green" : "amber"}>
-          {connections.supabase_connected ? "Live Data" : "Demo Data"}
+        <Badge tone={connections.active_data_mode === "live" ? "green" : "amber"}>
+          {connections.active_data_mode === "live" ? "Live Data" : "Demo Data"}
         </Badge>
         <Badge tone={connections.llm_key_configured ? "green" : "amber"}>
           {connections.llm_key_configured ? "Connected Agent" : "Prototype Agent"}
@@ -176,7 +179,7 @@ export function DashboardShell({
       <main className="min-w-0 px-3 py-3 lg:col-start-2 lg:row-start-2 lg:overflow-auto lg:px-4">{children}</main>
 
       <footer className="hidden border-t border-line px-4 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-text-min lg:col-start-2 lg:row-start-3 lg:block">
-        {connections.supabase_connected ? "Supabase connected" : "Local demo store"} / {connections.llm_key_configured ? "LLM key configured" : "Agent fallback enabled"} / No fake uptime or sync claims
+        {connections.active_data_mode === "live" ? "Live Supabase data" : "Local demo store"} / {connections.llm_key_configured ? "LLM key configured" : "Agent fallback enabled"} / No fake uptime or sync claims
       </footer>
 
       {paletteOpen ? (

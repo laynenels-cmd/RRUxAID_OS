@@ -25,6 +25,7 @@ export function LoginForm({
   const [demoLoading, setDemoLoading] = useState(false);
 
   const modeLabel = useMemo(() => {
+    if (supabaseConfigured && demoMode) return <Badge tone="amber">Live Auth / Demo Available</Badge>;
     if (supabaseConfigured) return <Badge tone="green">Live Auth</Badge>;
     if (demoMode) return <Badge tone="amber">Local Demo Mode</Badge>;
     return <Badge tone="red">Auth Not Configured</Badge>;
@@ -88,13 +89,15 @@ export function LoginForm({
           {loading ? "Signing In" : "Sign In"}
         </Button>
       </form>
-      {!supabaseConfigured && demoMode ? (
+      {demoMode ? (
         <div className="border-t border-line pt-5">
           <Button type="button" className="w-full" onClick={handleDemoLogin} disabled={demoLoading} icon={<LogIn className="h-3.5 w-3.5" />}>
-            {demoLoading ? "Entering Demo" : "Enter Local Demo Admin"}
+            {demoLoading ? "Entering Demo" : supabaseConfigured ? "Continue in Demo Mode" : "Enter Local Demo Admin"}
           </Button>
           <p className="mt-3 font-mono text-[10px] leading-5 text-text-min">
-            Demo Mode persists to .local-demo on this machine. Use Supabase for live team data.
+            {supabaseConfigured
+              ? "Demo mode uses local .local-demo data while Supabase credentials remain available for live auth."
+              : "Demo mode persists to .local-demo on this machine. Use Supabase for live team data."}
           </p>
         </div>
       ) : null}

@@ -10,7 +10,8 @@ export default function LoginPage() {
           <div className="mono-label mb-3 text-accent">Internal Access</div>
           <h1 className="display-title text-2xl font-medium text-text">RRU x AID Revenue Infrastructure OS</h1>
           <p className="mt-3 font-mono text-[11px] leading-6 text-text-low">
-            Sign in with Supabase Auth. If Supabase is not configured, use the clearly labeled local Demo Admin mode.
+            Sign in with Supabase Auth for live team data, or use the clearly labeled Demo Admin mode for the local review
+            dataset.
           </p>
         </div>
         <Suspense fallback={null}>

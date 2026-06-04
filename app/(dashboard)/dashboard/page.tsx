@@ -1,18 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, Activity, Gauge, GitBranch, UserRoundCheck } from "lucide-react";
+import { ArrowRight, Activity, Gauge, GitBranch, Sparkles, UserRoundCheck } from "lucide-react";
 import { requireInternalProfile } from "@/lib/auth/route-guards";
 import { getDashboardMetrics, listAthletes, listPipelineDeals } from "@/lib/db/operations";
+import { getOperationalInsights, listWorkflowRecommendations } from "@/lib/workflows/recommendations";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { currency } from "@/lib/utils/format";
 
 export default async function DashboardPage() {
   await requireInternalProfile();
-  const [metrics, athletes, deals] = await Promise.all([
+  const [metrics, athletes, deals, insights, workflows] = await Promise.all([
     getDashboardMetrics(),
     listAthletes(),
     listPipelineDeals(),
+    getOperationalInsights(),
+    listWorkflowRecommendations(),
   ]);
+  const priorityQueue = workflows.filter((item) => ["critical", "high"].includes(item.priority)).slice(0, 5);
   const stages = ["Audience Capture", "Complete Diagnostic", "First Offer Design", "Buildout Proposal", "Funnel Build"];
 
   return (
@@ -30,8 +34,9 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <ButtonLink href="/diagnostics">Run Diagnostic</ButtonLink>
-            <ButtonLink href="/reports">Generate Report</ButtonLink>
+            <ButtonLink href="/diagnostics">Run Audit</ButtonLink>
+            <ButtonLink href="/workflows">Workflow Queue</ButtonLink>
+            <ButtonLink href="/reports">Executive Report</ButtonLink>
           </div>
         </div>
       </section>
@@ -41,6 +46,23 @@ export default async function DashboardPage() {
         <Kpi title="Diagnostics In Progress" value={String(metrics.diagnostics_in_progress)} label="Draft/running records" icon={<Gauge />} />
         <Kpi title="Active Buildouts" value={String(metrics.active_buildouts)} label={`${metrics.blocked_buildouts} blocked`} icon={<Activity />} tone={metrics.blocked_buildouts ? "amber" : "green"} />
         <Kpi title="Weighted Pipeline" value={currency(metrics.weighted_pipeline)} label={`${currency(metrics.projected_pipeline)} projected`} icon={<GitBranch />} />
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {insights.map((insight) => (
+          <Link
+            key={insight.id}
+            href={insight.href}
+            className="panel block p-4 transition hover:border-[rgba(0,255,102,0.34)] hover:bg-onyx"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="mono-label text-accent">Operational Intelligence</div>
+              <Sparkles className={insight.tone === "amber" ? "h-4 w-4 text-amber" : insight.tone === "cyan" ? "h-4 w-4 text-cyan" : "h-4 w-4 text-accent"} strokeWidth={1.6} />
+            </div>
+            <div className="display-title mt-3 text-sm font-medium text-text">{insight.title}</div>
+            <p className="mt-3 font-mono text-[10px] leading-5 text-text-dim">{insight.body}</p>
+          </Link>
+        ))}
       </section>
 
       <section className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
@@ -96,6 +118,38 @@ export default async function DashboardPage() {
 
       <section className="grid gap-3 xl:grid-cols-[0.8fr_1.2fr]">
         <Card>
+          <CardHeader
+            title="Priority Workflow Queue"
+            label="Next Actions"
+            action={
+              <Link href="/workflows" className="font-mono text-[10px] uppercase tracking-[0.12em] text-accent hover:text-text">
+                View All
+              </Link>
+            }
+          />
+          <CardBody className="grid gap-2">
+            {priorityQueue.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="grid gap-1 border-b border-line-soft pb-2 last:border-0 last:pb-0 hover:text-accent"
+              >
+                <div className="flex items-center gap-2">
+                  <Badge tone={item.priority === "critical" ? "red" : "amber"}>{item.priority}</Badge>
+                  <span className="font-mono text-[11px] text-text">{item.title}</span>
+                </div>
+                <div className="font-mono text-[10px] text-text-min">
+                  {item.athlete_name || "Cohort"} / {item.owner || "Unassigned"}
+                </div>
+              </Link>
+            ))}
+            {!priorityQueue.length ? (
+              <p className="font-mono text-[11px] text-text-low">No critical workflow items. Review the full queue.</p>
+            ) : null}
+          </CardBody>
+        </Card>
+
+        <Card>
           <CardHeader title="Recent Activity" label="Audit Trail" />
           <CardBody className="grid gap-2">
             {metrics.recent_activity.map((activity) => (
@@ -110,6 +164,9 @@ export default async function DashboardPage() {
           </CardBody>
         </Card>
 
+      </section>
+
+      <section>
         <Card>
           <CardHeader title="Pipeline Movement" label="Open Deals" />
           <CardBody className="grid gap-2">

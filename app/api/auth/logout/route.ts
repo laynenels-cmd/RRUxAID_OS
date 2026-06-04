@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { DEMO_SESSION_COOKIE } from "@/lib/auth/demo-session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/utils/env";
 
@@ -9,6 +10,6 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.redirect(new URL("/login", request.url), 303);
-  response.cookies.delete("rru_demo_session");
+  response.cookies.delete(DEMO_SESSION_COOKIE);
   return response;
 }

@@ -1,10 +1,10 @@
 import { requireProfile } from "@/lib/auth/current-user";
-import { readAppStore } from "@/lib/db/operations";
+import { isDemoDataMode, readAppStore } from "@/lib/db/operations";
 import { getConnectionStatus } from "@/lib/utils/env";
 import { SettingsWorkspace } from "@/components/settings/settings-workspace";
 
 export default async function SettingsPage() {
-  const [profile, store] = await Promise.all([requireProfile(), readAppStore()]);
+  const [profile, store, demoDataMode] = await Promise.all([requireProfile(), readAppStore(), isDemoDataMode()]);
   const team = profile.role === "admin" ? store.profiles : store.profiles.filter((member) => member.id === profile.id);
   const partnerAccess = store.partner_athlete_access.map((grant) => ({
     ...grant,
@@ -18,7 +18,7 @@ export default async function SettingsPage() {
       team={team}
       athletes={store.athletes}
       partnerAccess={partnerAccess}
-      connections={getConnectionStatus()}
+      connections={{ ...getConnectionStatus(), active_data_mode: demoDataMode ? "demo" : "live" }}
     />
   );
 }

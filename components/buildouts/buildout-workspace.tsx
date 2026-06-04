@@ -68,7 +68,7 @@ export function BuildoutWorkspace({
   return (
     <div className="grid gap-3">
       <div className="border-b border-line px-1 pb-4">
-        <div className="mono-label mb-2 text-accent">Buildout Tracker</div>
+        <div className="mono-label mb-2 text-accent">Campaign Tasks</div>
         <h1 className="display-title text-3xl font-medium text-text">10-Stage Revenue Infrastructure Buildout</h1>
         <p className="mt-3 max-w-3xl font-mono text-[11px] leading-6 text-text-low">
           Stage advancement, blocked state, task creation, and completion persist to the backend.

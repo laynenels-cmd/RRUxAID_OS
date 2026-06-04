@@ -31,6 +31,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
 LLM_PROVIDER=openai
 NEXT_PUBLIC_APP_MODE=internal
 NEXT_PUBLIC_DEMO_MODE=true
@@ -91,19 +92,22 @@ Partner API access is intentionally limited to athlete/report read surfaces; dia
 
 ## Demo Mode Vs Live Mode
 
-Demo mode is enabled when `NEXT_PUBLIC_DEMO_MODE` is not `false` and Supabase is not configured. It persists to `.local-demo/rru-aid-os.json` on your machine and labels agent fallback responses as Prototype Mode when no OpenAI key is present.
+Demo mode is enabled when `NEXT_PUBLIC_DEMO_MODE` is not `false`. Use **Continue in Demo Mode** on the login screen to run against the local `.local-demo/rru-aid-os.json` store even when Supabase credentials are present (useful for internal reviews before live data is ready).
 
-Live mode is active when Supabase URL and anon key are configured. Data is stored in Supabase Postgres and protected by RLS. PDF report storage requires `SUPABASE_SERVICE_ROLE_KEY`.
+When the demo session cookie is active, reads and writes use the local demo store. When there is no demo session and Supabase is configured, reads and writes use live Supabase data. When Supabase is not configured, demo mode is the only data path. Agent responses are labeled as Prototype Mode when no OpenAI key is present.
+
+Live mode is active when you sign in with Supabase Auth and read/write through Postgres with RLS. PDF report storage requires `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Core Workflows
 
-- Dashboard: database-derived KPIs, pipeline totals, readiness leader, next action, and recent activity.
+- Dashboard: executive KPIs, operational intelligence cards, priority workflow queue, cohort stage map, readiness leader, activity, and pipeline movement.
+- Workflow Queue: derived operator actions from athletes, diagnostics, offers, campaign tasks, pipeline deals, plus labeled planning automations.
 - Athlete Intelligence: search, filter, sort, create, edit, archive, and open athlete dossiers.
 - Athlete Dossier: identity, summaries, trust signals, assets, leaks, opportunities, diagnostics, offers, buildout, pipeline, reports, and activity.
-- Diagnostics: create/run deterministic scoring from saved data, persist scores, update readiness, edit and approve.
+- AI Revenue Audit (Diagnostics): create/run deterministic scoring from saved data, persist scores, update readiness, edit and approve.
 - Offer Architect: create/edit offers, submit for review, approve, deploy, and create buildout tasks.
 - Ownership Map: strategic planning view generated from athlete, offer, buildout, and opportunity data.
-- Buildouts: persisted stage advancement, blocked/complete status, task creation, assignment, and completion.
+- Campaign Tasks (Buildouts): persisted stage advancement, blocked/complete status, task creation, assignment, and completion.
 - Pipeline: create/edit deals, update stages, weighted value, AID/RRU split, and CSV export.
 - Reports: generate saved reports from app data, preview, approve, export/download PDF, and store PDF path when storage is configured.
 - OS Agent: authenticated API endpoint loads saved app context, calls OpenAI when configured, saves messages, logs activity, and falls back deterministically without an API key.
