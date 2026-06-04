@@ -68,10 +68,14 @@ async function assertBrowserSmoke() {
 
   await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
   assert(page.url().includes("/login?next=%2Fdashboard"), "dashboard should land on login when signed out");
-  await page.getByRole("button", { name: "Enter Local Demo Admin" }).click();
+  await page.getByRole("button", { name: /Enter Local Demo Admin|Continue in Demo Mode/ }).click();
   await page.waitForURL(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "Private Athlete Ownership / Revenue Infrastructure" }).waitFor();
   await page.getByText("Demo Data").waitFor();
+
+  await page.getByRole("navigation").getByRole("link", { name: "Workflow Queue" }).click();
+  await page.waitForURL(`${baseUrl}/workflows`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Recommended Operator Actions" }).waitFor();
 
   await page.getByRole("link", { name: "Reports" }).click();
   await page.waitForURL(`${baseUrl}/reports`, { waitUntil: "domcontentloaded" });

@@ -6,6 +6,7 @@ const protectedPrefixes = [
   "/dashboard",
   "/athletes",
   "/diagnostics",
+  "/workflows",
   "/offers",
   "/buildouts",
   "/pipeline",
@@ -14,6 +15,10 @@ const protectedPrefixes = [
   "/settings",
   "/ownership",
 ];
+
+function hasDemoSession(request: NextRequest) {
+  return isDemoMode() && request.cookies.get("rru_demo_session")?.value === "admin";
+}
 
 export async function updateSession(request: NextRequest) {
   const isProtected = protectedPrefixes.some((prefix) =>
@@ -24,11 +29,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  if (!isSupabaseConfigured()) {
-    if (isDemoMode() && request.cookies.get("rru_demo_session")?.value === "admin") {
-      return NextResponse.next({ request });
-    }
+  if (hasDemoSession(request)) {
+    return NextResponse.next({ request });
+  }
 
+  if (!isSupabaseConfigured()) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
@@ -61,11 +66,18 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    user = null;
+  }
 
   if (!user) {
+    if (hasDemoSession(request)) {
+      return response;
+    }
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", request.nextUrl.pathname);

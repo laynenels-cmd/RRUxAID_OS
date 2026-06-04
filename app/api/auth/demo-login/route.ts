@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { isDemoMode, isSupabaseConfigured } from "@/lib/utils/env";
+import { DEMO_SESSION_COOKIE, DEMO_SESSION_VALUE } from "@/lib/auth/demo-session";
+import { isDemoMode } from "@/lib/utils/env";
 
 export async function POST(request: Request) {
-  if (isSupabaseConfigured() || !isDemoMode()) {
-    return NextResponse.json({ error: "Demo login is disabled when Supabase is configured." }, { status: 403 });
+  if (!isDemoMode()) {
+    return NextResponse.json({ error: "Demo mode is disabled." }, { status: 403 });
   }
 
   const url = new URL(request.url);
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
 
   if (jsonMode) {
     const response = NextResponse.json({ ok: true, next });
-    response.cookies.set("rru_demo_session", "admin", {
+    response.cookies.set(DEMO_SESSION_COOKIE, DEMO_SESSION_VALUE, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.redirect(new URL(next, request.url), 303);
-  response.cookies.set("rru_demo_session", "admin", {
+  response.cookies.set(DEMO_SESSION_COOKIE, DEMO_SESSION_VALUE, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",

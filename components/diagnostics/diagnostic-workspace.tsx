@@ -63,7 +63,7 @@ export function DiagnosticWorkspace({
     <div className="grid gap-3">
       <div className="flex flex-col gap-4 border-b border-line px-1 pb-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mono-label mb-2 text-accent">Revenue Diagnostic</div>
+          <div className="mono-label mb-2 text-accent">AI Revenue Audit</div>
           <h1 className="display-title text-3xl font-medium text-text">11-Category Revenue Infrastructure Score</h1>
           <p className="mt-3 max-w-3xl font-mono text-[11px] leading-6 text-text-low">
             Diagnostics are persisted records. In live mode they are saved to Supabase; without an LLM key the scoring engine

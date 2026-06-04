@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiError, withApiAuth } from "@/lib/auth/api";
 import { createServiceClient } from "@/lib/supabase/service";
-import { exportCohortData, getReport, listPipelineDeals, saveReportPdfUrl } from "@/lib/db/operations";
+import { exportCohortData, getReport, isDemoDataMode, listPipelineDeals, saveReportPdfUrl } from "@/lib/db/operations";
 import { isServiceRoleConfigured, isSupabaseConfigured } from "@/lib/utils/env";
 import { toCsv } from "@/lib/utils/csv";
 import { currency } from "@/lib/utils/format";
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       if (!report) return apiError("Report not found.", 404);
       const pdf = await renderReportPdf(report);
 
-      if (isSupabaseConfigured() && isServiceRoleConfigured()) {
+      if (!(await isDemoDataMode()) && isSupabaseConfigured() && isServiceRoleConfigured()) {
         try {
           const storagePath = `reports/${report.id}.pdf`;
           const service = createServiceClient();
