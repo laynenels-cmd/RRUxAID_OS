@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Plus } from "lucide-react";
 import type { Athlete, Report } from "@/types/domain";
 import { reportGenerateSchema } from "@/lib/validators/schemas";
+import { currency, titleize } from "@/lib/utils/format";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardBody, CardHeader } from "@/components/ui/card";
@@ -34,6 +35,16 @@ export function ReportsWorkspace({
   canWrite: boolean;
 }) {
   const [creating, setCreating] = useState(false);
+  const approved = reports.filter((report) => report.status === "approved").length;
+  const drafts = reports.filter((report) => report.status === "draft").length;
+  const projectedRevenue = reports.reduce((total, report) => {
+    const value = Number(report.content.metrics?.projected_month_1_revenue || 0);
+    return total + value;
+  }, 0);
+  const pipelineValue = reports.reduce((total, report) => {
+    const value = Number(report.content.metrics?.pipeline_value || 0);
+    return total + value;
+  }, 0);
 
   return (
     <div className="grid gap-3">
@@ -42,13 +53,21 @@ export function ReportsWorkspace({
           <div className="mono-label mb-2 text-accent">Reports</div>
           <h1 className="display-title text-3xl font-medium text-text">Saved Intelligence Reports</h1>
           <p className="mt-3 max-w-3xl font-mono text-[11px] leading-6 text-text-low">
-            Reports are generated from saved records, saved as drafts, previewed internally, approved, and exported as PDFs.
+            Tyler-facing packets that translate athlete attention into revenue leaks, first-offer recommendations, pipeline
+            value, and the next RRU/AID operating decision.
           </p>
         </div>
         <Button disabled={!canWrite} variant="primary" onClick={() => setCreating(true)} icon={<Plus className="h-3.5 w-3.5" />}>
           Generate Report
         </Button>
       </div>
+
+      <section className="grid gap-3 md:grid-cols-4">
+        <ReportStat label="Approved" value={String(approved)} />
+        <ReportStat label="Drafts" value={String(drafts)} />
+        <ReportStat label="Projected Month 1" value={currency(projectedRevenue)} />
+        <ReportStat label="Pipeline In Reports" value={currency(pipelineValue)} />
+      </section>
 
       <div className="grid gap-3 xl:grid-cols-3">
         {reports.map((report) => (
@@ -62,6 +81,16 @@ export function ReportsWorkspace({
             </div>
             <div className="p-4">
               <p className="font-mono text-[11px] leading-6 text-text-dim">{report.content.summary}</p>
+              {report.content.metrics ? (
+                <div className="mt-4 grid gap-2 border-t border-line-soft pt-3 sm:grid-cols-2">
+                  {Object.entries(report.content.metrics).slice(0, 4).map(([key, value]) => (
+                    <div key={key} className="border border-line-soft bg-bg p-2">
+                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-text-min">{titleize(key)}</div>
+                      <div className="mt-1 font-mono text-[12px] text-text">{formatMetric(key, value)}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div className="mt-4 flex items-center justify-between border-t border-line-soft pt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-text-min">
                 <span>{report.athlete?.name || "Cohort"}</span>
                 <FileText className="h-4 w-4 text-accent" />
@@ -71,9 +100,34 @@ export function ReportsWorkspace({
         ))}
       </div>
 
+      {!reports.length ? (
+        <div className="panel p-8 text-center">
+          <div className="mono-label text-accent">No Reports Yet</div>
+          <p className="mx-auto mt-3 max-w-xl font-mono text-[11px] leading-6 text-text-low">
+            Generate the first intelligence packet after an athlete has a diagnostic, offer, or pipeline record. The report
+            will remain internal until an admin approves it.
+          </p>
+        </div>
+      ) : null}
+
       {creating ? <ReportForm athletes={athletes} onClose={() => setCreating(false)} /> : null}
     </div>
   );
+}
+
+function ReportStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="panel p-4">
+      <div className="mono-label">{label}</div>
+      <div className="display-title mt-2 text-2xl font-medium text-text">{value}</div>
+    </div>
+  );
+}
+
+function formatMetric(key: string, value: string | number | null) {
+  if (value == null || value === "") return "N/A";
+  if (typeof value === "number" && /(revenue|value|amount|price)/i.test(key)) return currency(value);
+  return String(value);
 }
 
 function ReportForm({ athletes, onClose }: { athletes: Athlete[]; onClose: () => void }) {

@@ -29,8 +29,8 @@ export default async function DashboardPage() {
               Private Athlete Ownership <span className="text-text-low">/</span> Revenue Infrastructure
             </h1>
             <p className="mt-3 max-w-3xl font-mono text-[11px] leading-6 text-text-low">
-              RRU owns the room and relationships. AID owns the revenue architecture and operating system. This dashboard
-              reads the saved operational records and highlights the next operator action.
+              RRU owns the relationships, access, and rooms. AID turns those signals into diagnostics, first offers,
+              follow-up systems, and accountable buildout work. This view shows the next revenue gate for the pilot cohort.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
             className="panel block p-4 transition hover:border-[rgba(0,255,102,0.34)] hover:bg-onyx"
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="mono-label text-accent">Operational Intelligence</div>
+              <div className="mono-label text-accent">{insight.label}</div>
               <Sparkles className={insight.tone === "amber" ? "h-4 w-4 text-amber" : insight.tone === "cyan" ? "h-4 w-4 text-cyan" : "h-4 w-4 text-accent"} strokeWidth={1.6} />
             </div>
             <div className="display-title mt-3 text-sm font-medium text-text">{insight.title}</div>

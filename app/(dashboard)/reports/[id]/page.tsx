@@ -6,6 +6,7 @@ import { canWrite } from "@/lib/auth/permissions";
 import { getReport } from "@/lib/db/operations";
 import { ReportActions } from "@/components/reports/report-actions";
 import { Badge, statusTone } from "@/components/ui/badge";
+import { currency, titleize } from "@/lib/utils/format";
 
 export default async function ReportDetailPage({
   params,
@@ -43,8 +44,8 @@ export default async function ReportDetailPage({
           <div className="grid gap-3 border-b border-gray-200 py-6 md:grid-cols-4">
             {Object.entries(report.content.metrics).map(([key, value]) => (
               <div key={key} className="border border-gray-200 p-3">
-                <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">{key.replace(/_/g, " ")}</div>
-                <div className="mt-2 text-sm font-semibold text-gray-950">{String(value ?? "")}</div>
+                <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">{titleize(key)}</div>
+                <div className="mt-2 text-sm font-semibold text-gray-950">{formatMetric(key, value)}</div>
               </div>
             ))}
           </div>
@@ -56,7 +57,12 @@ export default async function ReportDetailPage({
               <p className="mt-2 text-sm leading-7 text-gray-700">{section.body}</p>
               {section.bullets?.length ? (
                 <ul className="mt-3 grid gap-2 text-sm text-gray-700">
-                  {section.bullets.map((bullet) => <li key={bullet}>- {bullet}</li>)}
+                  {section.bullets.map((bullet) => (
+                    <li key={bullet} className="flex gap-2">
+                      <span className="text-green-700">-</span>
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
                 </ul>
               ) : null}
             </section>
@@ -65,4 +71,10 @@ export default async function ReportDetailPage({
       </article>
     </div>
   );
+}
+
+function formatMetric(key: string, value: string | number | null) {
+  if (value == null || value === "") return "N/A";
+  if (typeof value === "number" && /(revenue|value|amount|price)/i.test(key)) return currency(value);
+  return String(value);
 }

@@ -320,10 +320,18 @@ const reports: Report[] = [
     title: "Nico Ramirez Revenue Infrastructure Audit",
     status: "approved",
     content: {
-      summary: "Nico has the strongest near-term buildout case in the pilot cohort. The audience trusts his discipline, but the current path has no first transaction or follow-up engine.",
+      summary: "Nico is the clearest pilot proof point for RRU x AID: trusted audience, visible discipline, and a paid reset offer ready to move from attention into a first transaction path.",
       sections: [
-        { title: "Primary Revenue Leak", body: "Inbound DMs and list growth are not connected to a first paid offer.", bullets: ["No visible CTA path", "Email list is not used for launch warm-up", "Sponsor proof is not converted into buyer proof"] },
-        { title: "Recommended Path", body: "Approve Fight Shape Reset, deploy capture, and launch to the warm audience inside a 30-day buildout." },
+        {
+          title: "Primary Revenue Leak",
+          body: "Inbound DMs, sponsor proof, and list growth are not connected to a repeatable first paid offer.",
+          bullets: ["No visible CTA path from training content", "Email list is not used for launch warm-up", "Sponsor credibility is not converted into buyer proof"],
+        },
+        {
+          title: "Recommended Path",
+          body: "Approve Fight Shape Reset, deploy capture, and run a 30-day launch sprint with RRU relationship support and AID fulfillment architecture.",
+          bullets: ["RRU: relationship review and launch-room access", "AID: offer page, payment path, follow-up sequence, and reporting"],
+        },
       ],
       metrics: { readiness_score: 81, projected_month_1_revenue: 47000, pipeline_value: 18500 },
     },
@@ -339,12 +347,42 @@ const reports: Report[] = [
     title: "Marcus King First Offer Recommendation",
     status: "draft",
     content: {
-      summary: "Marcus should package parent and youth demand into a capped father/son hitting cohort before sponsor negotiations resume.",
+      summary: "Marcus has sponsor credibility and a parent/youth audience, but the commercial system is still sponsor-first. The faster path is a capped father/son hitting cohort that creates buyer proof before the next brand negotiation.",
       sections: [
-        { title: "Buyer", body: "Baseball parents who already ask for clinics, drills, and swing feedback." },
-        { title: "Offer", body: "Four-week cohort at $497 with live teaching, drill library, and a final swing review." },
+        { title: "Buyer", body: "Baseball parents who already ask for clinics, drills, swing feedback, and trusted guidance from someone who played at the highest level." },
+        {
+          title: "Offer",
+          body: "Four-week cohort at $497 with live teaching, drill library, parent practice calendar, and a final swing review.",
+          bullets: ["Cap the first run to protect quality", "Use clinic alumni and parent quotes as proof assets", "Package results into the next sponsor conversation"],
+        },
       ],
       metrics: { price: 497, projected_month_1_revenue: 38000 },
+    },
+    pdf_url: null,
+    created_by: DEMO_ADMIN_ID,
+    created_at: t0,
+    updated_at: t0,
+  },
+  {
+    id: "40000000-0000-4000-8000-000000000017",
+    athlete_id: athleteIds.devon,
+    report_type: "Ownership Opportunity Map",
+    title: "Devon Price Ownership Opportunity Map",
+    status: "approved",
+    content: {
+      summary: "Devon is the cleanest example of the RRU x AID ownership thesis: retired-athlete access, business literacy, investor rooms, and a productized advisory path that can become a repeatable athlete-operator system.",
+      sections: [
+        {
+          title: "Opportunity",
+          body: "Advisory demand exists, but it is trapped in one-off calls and warm introductions. The system needs a discovery path, qualification logic, and a quarterly container.",
+          bullets: ["Turn inbound advisory asks into a scored lead flow", "Attach founder/investor proof to the application path", "Use RRU rooms to source qualified operator conversations"],
+        },
+        {
+          title: "Recommended Path",
+          body: "Finish the discovery page QA, open a 90-day advisory cohort, and report weekly on accepted applications, qualified calls, and closed advisory seats.",
+        },
+      ],
+      metrics: { advisory_price: 4500, projected_month_1_revenue: 27000, pipeline_value: 12000 },
     },
     pdf_url: null,
     created_by: DEMO_ADMIN_ID,

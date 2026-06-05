@@ -1,5 +1,6 @@
 import "server-only";
 import { readAppStore } from "@/lib/db/operations";
+import { currency } from "@/lib/utils/format";
 
 export type WorkflowPriority = "critical" | "high" | "medium" | "low";
 
@@ -16,6 +17,10 @@ export type WorkflowRecommendation = {
   due_date: string | null;
   source: "derived" | "system";
 };
+
+function sentence(value: string | null | undefined) {
+  return (value || "No constraint recorded").replace(/[.?!]+$/, "");
+}
 
 function priorityFromSignals(signals: {
   blocked?: boolean;
@@ -44,7 +49,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
         id: `action-${athlete.id}`,
         category: "crm",
         title: athlete.next_action,
-        description: `Operator action for ${athlete.name} at ${athlete.stage || "intake"} stage.`,
+        description: `Next gate: ${athlete.stage || "intake"}. Revenue leak: ${sentence(athlete.current_leak)}.`,
         athlete_name: athlete.name,
         athlete_id: athlete.id,
         priority: priorityFromSignals({ criticalLeak: Boolean(leak), highValue: Number(athlete.pipeline_value || 0) >= 15000 }),
@@ -82,7 +87,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
         id: `offer-${offer.id}`,
         category: "offer",
         title: offer.status === "review" ? "Review offer package" : "Finalize first offer architecture",
-        description: `${offer.name} — ${offer.status} status.`,
+        description: `${offer.name} at ${currency(offer.price)}. Projected month-one revenue: ${currency(offer.projected_month_1_revenue)}.`,
         athlete_name: athlete.name,
         athlete_id: athlete.id,
         priority: offer.status === "review" ? "high" : "medium",
@@ -121,7 +126,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
       id: `deal-${deal.id}`,
       category: "crm",
       title: `Advance ${deal.deal_name}`,
-      description: `${deal.deal_type} at ${deal.stage} — ${deal.probability}% probability.`,
+      description: `${deal.deal_type} at ${deal.stage}. ${currency(deal.amount)} gross, ${deal.probability}% probability, ${currency(deal.amount * (deal.probability / 100))} weighted.`,
       athlete_name: athlete?.name || null,
       athlete_id: athlete?.id || null,
       priority: priorityFromSignals({ highValue: Number(deal.amount || 0) >= 10000 }),
@@ -136,7 +141,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
     {
       category: "automation",
       title: "Route inbound DMs to offer qualifier",
-      description: "Auto-tag athlete inbound questions and route high-intent threads to operator review.",
+      description: "Planning spec: classify athlete DMs by buyer intent and route coaching, sponsor, and partnership threads to the right owner.",
       athlete_name: null,
       athlete_id: null,
       priority: "medium",
@@ -147,7 +152,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
     {
       category: "content",
       title: "Publish weekly proof asset cadence",
-      description: "Schedule trust-signal content drops tied to active buildout stages.",
+      description: "RRU content lane: convert rooms, clinics, sponsor moments, and athlete wins into proof assets that support active offers.",
       athlete_name: null,
       athlete_id: null,
       priority: "low",
@@ -158,7 +163,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
     {
       category: "automation",
       title: "Sync pipeline stage changes to activity log",
-      description: "When deal stage advances, append audit trail and notify assigned owner.",
+      description: "Planning spec: when a deal advances, append the audit trail and notify the RRU/AID owner responsible for the next gate.",
       athlete_name: null,
       athlete_id: null,
       priority: "low",
@@ -181,7 +186,7 @@ export async function listWorkflowRecommendations(): Promise<WorkflowRecommendat
 }
 
 export async function getOperationalInsights(): Promise<
-  Array<{ id: string; title: string; body: string; tone: "accent" | "amber" | "cyan"; href: string }>
+  Array<{ id: string; label: string; title: string; body: string; tone: "accent" | "amber" | "cyan"; href: string }>
 > {
   const store = await readAppStore();
   const athletes = store.athletes.filter((athlete) => !athlete.archived_at);
@@ -200,33 +205,37 @@ export async function getOperationalInsights(): Promise<
   return [
     {
       id: "cohort-load",
-      title: "Cohort execution load",
-      body: `${openTasks} open campaign tasks, ${draftDiagnostics} diagnostics in progress, and ${openDeals} active pipeline opportunities across ${athletes.length} athletes.`,
+      label: "RRU / AID Operating Signal",
+      title: "Cohort revenue workload",
+      body: `${openTasks} open campaign tasks, ${draftDiagnostics} diagnostics in progress, and ${openDeals} active opportunities across ${athletes.length} athletes.`,
       tone: "cyan",
       href: "/workflows",
     },
     {
       id: "blocked-buildouts",
-      title: blocked ? `${blocked} buildout(s) blocked` : "Buildout lane clear",
+      label: "Execution Risk",
+      title: blocked ? `${blocked} buildout lane blocked` : "Buildout lane clear",
       body: blocked
-        ? "Blocked buildouts need operator intervention before stage advancement can continue."
-        : "No blocked buildouts. Focus on offer review and pipeline advancement.",
+        ? "Resolve owner, pricing, or CTA blockers before Tyler-facing review calls."
+        : "No blocked buildouts. Move attention to offer review and pipeline advancement.",
       tone: blocked ? "amber" : "accent",
       href: "/buildouts",
     },
     {
       id: "readiness-gap",
-      title: lowestReadiness ? `${lowestReadiness.name} readiness gap` : "Readiness stable",
+      label: "Lowest Monetization Readiness",
+      title: lowestReadiness ? `${lowestReadiness.name} needs infrastructure` : "Readiness stable",
       body: lowestReadiness
-        ? `Score ${lowestReadiness.readiness_score || 0}/100. Constraint: ${lowestReadiness.current_leak || "not recorded"}.`
+        ? `Score ${lowestReadiness.readiness_score || 0}/100. Primary constraint: ${sentence(lowestReadiness.current_leak)}.`
         : "All athlete readiness scores are within expected operating range.",
       tone: "amber",
       href: lowestReadiness ? `/athletes/${lowestReadiness.id}` : "/athletes",
     },
     {
       id: "agent-path",
+      label: "AI Context Layer",
       title: "OS Agent context ready",
-      body: "Agent can reason over saved diagnostics, offers, buildouts, and pipeline records. Responses are labeled when running without an API key.",
+      body: "Agent can reason over diagnostics, offers, buildouts, and pipeline records. Prototype responses are labeled when no model key is present.",
       tone: "accent",
       href: "/agent",
     },
