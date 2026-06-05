@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -66,6 +66,7 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const mainRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -79,6 +80,11 @@ export function DashboardShell({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, left: 0 });
+    window.scrollTo({ top: 0, left: 0 });
+  }, [pathname]);
 
   const visibleNav = useMemo(
     () => navItems.filter((item) => canAccessScope(profile.role, item.scope)),
@@ -176,7 +182,7 @@ export function DashboardShell({
         </form>
       </header>
 
-      <main className="min-w-0 px-3 py-3 lg:col-start-2 lg:row-start-2 lg:overflow-auto lg:px-4">{children}</main>
+      <main ref={mainRef} className="min-w-0 px-3 py-3 lg:col-start-2 lg:row-start-2 lg:overflow-auto lg:px-4">{children}</main>
 
       <footer className="hidden border-t border-line px-4 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-text-min lg:col-start-2 lg:row-start-3 lg:block">
         {connections.active_data_mode === "live" ? "Live Supabase data" : "Local demo store"} / {connections.llm_key_configured ? "LLM key configured" : "Agent fallback enabled"} / No fake uptime or sync claims
